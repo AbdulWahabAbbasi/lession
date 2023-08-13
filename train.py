@@ -6,8 +6,8 @@ import time
 import torch
 import torchvision.transforms as transforms
 from models import tiramisu
-from datasets import MSDataset
-from datasets import joint_transforms
+from data import MSDataset
+from data import joint_transforms
 import utils.training as train_utils
 import gc
 import matplotlib.pyplot as plt
@@ -20,7 +20,7 @@ opt_defs = {}
 opt_defs["n_classes"] = dict(flags = ('-nc', '--nclasses'), info=dict(default=2, type=int, help="num of classes"))
 opt_defs["mean"] = dict(flags = ('-mean', '--mean'), info=dict(default=0.1026, type=float, help="mean for dataset normalization"))
 opt_defs["std"] = dict(flags = ('-std', '--std'), info=dict(default=0.0971, type=float, help="std for dataset normalization"))
-opt_defs["dataset_path"] = dict(flags = ('-dp', '--dataset-path'), info=dict(default="./datasets/ISBI_2015", type=str, help="path to dataset"))
+opt_defs["dataset_path"] = dict(flags = ('-dp', '--dataset-path'), info=dict(default="./data/ISBI_2015", type=str, help="path to dataset"))
 opt_defs["validation_dataset"] = dict(flags = ('-vd','--val-dataset',), info=dict(default='val', type=str, help="val or test"))
 opt_defs["folders"] = dict(flags = ('-f','--folders',), info=dict(default=5, type=int, help="num folders for cross validation"))
 
