@@ -97,89 +97,89 @@ class conv_block(nn.Module):
         x = self.conv(x)
         return x
         
+# class SqueezeAttentionBlock(nn.Module):
+#     def __init__(self, ch_in, ch_out):
+#         super(SqueezeAttentionBlock, self).__init__()
+#         self.avg_pool = nn.AvgPool2d(kernel_size=2, stride=2)
+#         self.conv = conv_block(ch_in, ch_out)
+#         self.conv_atten = conv_block(ch_in, ch_out)
+#         self.upsample = nn.Upsample(scale_factor=2)
+#
+#     def forward(self, x):
+#         #print("x.shape: ", x.shape)
+#         x_res = self.conv(x)
+#         #print("x_res.shape: ", x_res.shape)
+#         y = self.avg_pool(x)
+#         #print("y.shape dopo avg pool: ", y.shape)
+#         y = self.conv_atten(y)
+#         #print("y.shape dopo conv att:", y.shape)
+#         y = self.upsample(y)
+#         #print(y.shape, x_res.shape)
+#         #print("(y * x_res) + y: ", (y * x_res) + y)
+#         return (y * x_res) + y
+#
+# def center_crop(layer, max_height, max_width):
+#     _, _, h, w = layer.size()
+#     xy1 = (w - max_width) // 2
+#     xy2 = (h - max_height) // 2
+#     return layer[:, :, xy2:(xy2 + max_height), xy1:(xy1 + max_width)]
+
+class WindowAttention(nn.Module):
+    def __init__(self, dim, window_size, heads):
+        super().__init__()
+        self.heads = heads
+        self.scale = window_size ** -0.5
+        self.qkv = nn.Linear(dim, dim * 3, bias=False)
+        self.attn_drop = nn.Dropout(0.1)
+        self.proj = nn.Linear(dim, dim)
+        self.proj_drop = nn.Dropout(0.1)
+
+    def forward(self, x):
+        B, C, H, W = x.shape
+        x = x.permute(0, 2, 3, 1)
+        qkv = self.qkv(x).reshape(B, H * W, 3, self.heads, C // self.heads).permute(2, 0, 3, 1, 4)
+        q, k, v = qkv[0], qkv[1], qkv[2]
+
+        attn = (q @ k.transpose(-2, -1)) * self.scale
+        attn = attn.softmax(dim=-1)
+        attn = self.attn_drop(attn)
+
+        x = (attn @ v).transpose(1, 2).reshape(B, H, W, C)
+        x = self.proj(x.permute(0, 3, 1, 2))
+        x = self.proj_drop(x)
+        return x
+
+class SwinTransformerBlock(nn.Module):
+    def __init__(self, dim, heads, window_size=7):
+        super().__init__()
+        self.norm1 = nn.BatchNorm2d(dim)
+        self.attn = WindowAttention(dim, window_size, heads)
+        self.norm2 = nn.BatchNorm2d(dim)
+        self.mlp_head = nn.Linear(dim * window_size * window_size, dim)  # account for H, W dims
+        self.mlp_tail = nn.Linear(dim, dim)
+
+    def forward(self, x):
+        B, C, H, W = x.shape
+        x = x + self.attn(self.norm1(x))
+        x_flat = x.permute(0, 2, 3, 1).contiguous().view(B, H * W, C)
+        x_mlp = self.mlp_tail(self.mlp_head(x_flat))
+        x_mlp = x_mlp.view(B, H, W, C).permute(0, 3, 1, 2)
+        x = x + self.norm2(x_mlp)
+        return x
+
 class SqueezeAttentionBlock(nn.Module):
     def __init__(self, ch_in, ch_out):
         super(SqueezeAttentionBlock, self).__init__()
-        self.avg_pool = nn.AvgPool2d(kernel_size=2, stride=2)
-        self.conv = conv_block(ch_in, ch_out)
-        self.conv_atten = conv_block(ch_in, ch_out)
-        self.upsample = nn.Upsample(scale_factor=2)
+        self.swin_block = SwinTransformerBlock(ch_in, heads=4)  # Adjust heads as required
 
     def forward(self, x):
-        #print("x.shape: ", x.shape)
-        x_res = self.conv(x)
-        #print("x_res.shape: ", x_res.shape)
-        y = self.avg_pool(x)
-        #print("y.shape dopo avg pool: ", y.shape)
-        y = self.conv_atten(y)
-        #print("y.shape dopo conv att:", y.shape)
-        y = self.upsample(y)
-        #print(y.shape, x_res.shape)
-        #print("(y * x_res) + y: ", (y * x_res) + y)
-        return (y * x_res) + y
+        return self.swin_block(x)
+
+# Rest of your classes and functions remain unchanged...
 
 def center_crop(layer, max_height, max_width):
     _, _, h, w = layer.size()
     xy1 = (w - max_width) // 2
     xy2 = (h - max_height) // 2
     return layer[:, :, xy2:(xy2 + max_height), xy1:(xy1 + max_width)]
-
-# class WindowAttention(nn.Module):
-#     def __init__(self, dim, window_size, heads):
-#         super().__init__()
-#         self.heads = heads
-#         self.scale = window_size ** -0.5
-#         self.qkv = nn.Linear(dim, dim * 3, bias=False)
-#         self.attn_drop = nn.Dropout(0.1)
-#         self.proj = nn.Linear(dim, dim)
-#         self.proj_drop = nn.Dropout(0.1)
-
-#     def forward(self, x):
-#         B, C, H, W = x.shape
-#         x = x.permute(0, 2, 3, 1)
-#         qkv = self.qkv(x).reshape(B, H * W, 3, self.heads, C // self.heads).permute(2, 0, 3, 1, 4)
-#         q, k, v = qkv[0], qkv[1], qkv[2]
-
-#         attn = (q @ k.transpose(-2, -1)) * self.scale
-#         attn = attn.softmax(dim=-1)
-#         attn = self.attn_drop(attn)
-
-#         x = (attn @ v).transpose(1, 2).reshape(B, H, W, C)
-#         x = self.proj(x.permute(0, 3, 1, 2))
-#         x = self.proj_drop(x)
-#         return x
-
-# class SwinTransformerBlock(nn.Module):
-#     def __init__(self, dim, heads, window_size=7):
-#         super().__init__()
-#         self.norm1 = nn.BatchNorm2d(dim)
-#         self.attn = WindowAttention(dim, window_size, heads)
-#         self.norm2 = nn.BatchNorm2d(dim)
-#         self.mlp_head = nn.Linear(dim * window_size * window_size, dim)  # account for H, W dims
-#         self.mlp_tail = nn.Linear(dim, dim)
-
-#     def forward(self, x):
-#         B, C, H, W = x.shape
-#         x = x + self.attn(self.norm1(x))
-#         x_flat = x.permute(0, 2, 3, 1).contiguous().view(B, H * W, C)
-#         x_mlp = self.mlp_tail(self.mlp_head(x_flat))
-#         x_mlp = x_mlp.view(B, H, W, C).permute(0, 3, 1, 2)
-#         x = x + self.norm2(x_mlp)
-#         return x
-
-# class SqueezeAttentionBlock(nn.Module):
-#     def __init__(self, ch_in, ch_out):
-#         super(SqueezeAttentionBlock, self).__init__()
-#         self.swin_block = SwinTransformerBlock(ch_in, heads=4)  # Adjust heads as required
-
-#     def forward(self, x):
-#         return self.swin_block(x)
-
-# # Rest of your classes and functions remain unchanged...
-
-# def center_crop(layer, max_height, max_width):
-#     _, _, h, w = layer.size()
-#     xy1 = (w - max_width) // 2
-#     xy2 = (h - max_height) // 2
-#     return layer[:, :, xy2:(xy2 + max_height), xy1:(xy1 + max_width)]
 
