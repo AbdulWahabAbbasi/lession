@@ -89,17 +89,34 @@ def error(preds, targets):
     incorrect = preds.ne(targets).cpu().sum().item()
     err = incorrect / n_pixels
     return round(err, 5)
+######################################Loss Section###################################################################
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
-def dice_loss(outputs, target):
-    smooth = 0.1
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
-    outputs = outputs[:, 1, :, :]
+import torch
+import torch.nn.functional as F
 
-    iflat = outputs.contiguous().view(-1)
-    tflat = target.float().contiguous().view(-1)
-    intersection = (iflat * tflat).sum()
-    return 1 - ((2. * intersection + smooth) /
-                (iflat.sum() + tflat.sum() + smooth))
+
+def dice_loss(outputs, target, alpha=0.25, gamma=2.0):
+    # Convert the logits to probabilities
+    probs = F.softmax(outputs, dim=1)[:, 1, :, :]
+
+    # Clamp probabilities for numerical stability
+    probs = torch.clamp(probs, 1e-7, 1 - 1e-7)
+
+    # Compute pt: the probability of the ground-truth class
+    pt = torch.where(target == 1, probs, 1 - probs)
+
+    # Compute Focal Loss
+    loss = -alpha * (1 - pt) ** gamma * torch.log(pt)
+
+    return loss.mean()
+
 
 def dice(tp, fp, fn):
     if (2 * tp + fp + fn) > 0:
@@ -108,6 +125,25 @@ def dice(tp, fp, fn):
     else:
         return 1
 
+
+# def dice_loss(outputs, target):
+#     smooth = 0.1
+#
+#     outputs = outputs[:, 1, :, :]
+#
+#     iflat = outputs.contiguous().view(-1)
+#     tflat = target.float().contiguous().view(-1)
+#     intersection = (iflat * tflat).sum()
+#     return 1 - ((2. * intersection + smooth) /
+#                 (iflat.sum() + tflat.sum() + smooth))
+#
+# def dice(tp, fp, fn):
+#     if (2 * tp + fp + fn) > 0:
+#         dice = 2 * tp / (2 * tp + fp + fn)
+#         return round(dice, 5)
+#     else:
+#         return 1
+###########################################Loss Section End ############################################################3
 def compute_performance(preds, targets):
     assert preds.size() == targets.size()
     tp = targets.mul(preds).eq(1).sum().item()
