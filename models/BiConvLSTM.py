@@ -109,6 +109,65 @@ class BiConvLSTM(nn.Module):
 
         return current_input, hidden
 
+
+import torch
+import torch.nn as nn
+
+
+class HybridCNN_GRU(nn.Module):
+    def __init__(self, cnn_input_channels, cnn_output_channels, gru_input_size, gru_hidden_size, filter_size,
+                 num_layers, bidirectional=False):
+        super(HybridCNN_GRU, self).__init__()
+
+        self.cnn_input_channels = cnn_input_channels
+        self.cnn_output_channels = cnn_output_channels
+        self.gru_input_size = gru_input_size
+        self.gru_hidden_size = gru_hidden_size
+        self.filter_size = filter_size
+        self.num_layers = num_layers
+        self.bidirectional = bidirectional
+
+        # CNN Module
+        self.cnn_module = nn.Sequential(
+            nn.Conv2d(self.cnn_input_channels, self.cnn_output_channels, kernel_size=self.filter_size,
+                      padding=(self.filter_size - 1) // 2),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2)
+        )
+
+        # GRU Module
+        self.gru_module = BiConvLSTM(self.gru_input_size, self.gru_hidden_size, self.filter_size, self.num_layers,
+                                     self.bidirectional)
+
+    def forward(self, input_data):
+        # CNN Forward Pass
+        cnn_output = self.cnn_module(input_data)
+
+        # Reshape CNN Output for GRU Input
+        gru_input = cnn_output.permute(1, 0, 2, 3)  # (batch_size, seq_len, features, height, width)
+
+        # GRU Forward Pass
+        gru_output, _ = self.gru_module(gru_input)
+
+        return gru_output
+
+
+# Define hyperparameters
+# cnn_input_channels = 1
+# cnn_output_channels = 32
+# gru_input_size = cnn_output_channels
+# gru_hidden_size = 64
+# filter_size = 3
+# num_layers = 2
+# bidirectional = False
+
+# Create the HybridCNN_GRU model
+# HybridCNN_GRU(cnn_input_channels, cnn_output_channels, gru_input_size, gru_hidden_size, filter_size, num_layers,
+#                       bidirectional)
+
+# Print the model architecture
+# print(model)
+
 ##################################LSTM HERE################################################################################3
 # class BiConvLSTMCell(nn.Module):
 #     """
