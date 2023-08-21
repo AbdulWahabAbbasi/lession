@@ -43,7 +43,7 @@ opt_defs["learning_rate_decay_by"] = dict(flags = ('-lrdb', '--learning-rate-dec
 opt_defs["learning_rate_decay_every"] = dict(flags = ('-lrde', '--learning-rate-decay-every'), info=dict(default=10, type=int, help="learning rate decay period"))
 opt_defs["weight_decay"] = dict(flags = ('-wd', '--weight-decay',), info=dict(default=1e-4, type=float, help="weight decay"))
 opt_defs["loss_type"] = dict(flags = ('-lt', '--loss-type'), info=dict(default='dice', type = str, help="the type of loss, i.e. dice"))
-opt_defs["num_epochs"] = dict(flags = ('-ne', '--num-epochs',), info=dict(default=5, type=int, help="training epochs"))
+opt_defs["num_epochs"] = dict(flags = ('-ne', '--num-epochs',), info=dict(default=30, type=int, help="training epochs"))
 
 # Checkpoint options
 opt_defs["results_path"] = dict(flags = ('-rp', '--results-path'), info=dict(default="./results_ms/", type=str, help="path to results"))

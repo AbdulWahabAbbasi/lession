@@ -63,7 +63,7 @@ class FCDenseNet(nn.Module):
                 num_directions = 2
             else:
                 num_directions = 1
-            self.biConvLSTM = BiConvLSTM.HybridCNN_GRU(prev_block_channels, prev_block_channels//num_directions, lstm_parameters['lstm_parameters']['lstm_kernel_size'], lstm_parameters['lstm_parameters']['lstm_num_layers'],  lstm_parameters['lstm_parameters']['bidirectional'], True)
+            self.biConvLSTM = BiConvLSTM.BiConvLSTM(prev_block_channels, prev_block_channels//num_directions, lstm_parameters['lstm_parameters']['lstm_kernel_size'], lstm_parameters['lstm_parameters']['lstm_num_layers'],  lstm_parameters['lstm_parameters']['bidirectional'], True)
 
 
         #######################
