@@ -38,12 +38,12 @@ opt_defs["input_dim"] = dict(flags = ('-dim', '--input-dim'), info=dict(default=
 # Training options
 opt_defs["batch_size"] = dict(flags = ('-b', '--batch-size'), info=dict(default=1, type=int, help="batch size"))
 opt_defs["optim"] = dict(flags = ('-o', '--optim'), info=dict(default="RMSprop", help="optimizer"))#RMSprop
-opt_defs["learning_rate"] = dict(flags = ('-lr', '--learning-rate'), info=dict(default=1e-6, type=float, help="learning rate"))
+opt_defs["learning_rate"] = dict(flags = ('-lr', '--learning-rate'), info=dict(default=1e-4, type=float, help="learning rate"))
 opt_defs["learning_rate_decay_by"] = dict(flags = ('-lrdb', '--learning-rate-decay-by'), info=dict(default=0.995, type=float, help="learning rate decay factor"))
 opt_defs["learning_rate_decay_every"] = dict(flags = ('-lrde', '--learning-rate-decay-every'), info=dict(default=10, type=int, help="learning rate decay period"))
 opt_defs["weight_decay"] = dict(flags = ('-wd', '--weight-decay',), info=dict(default=1e-4, type=float, help="weight decay"))
 opt_defs["loss_type"] = dict(flags = ('-lt', '--loss-type'), info=dict(default='dice', type = str, help="the type of loss, i.e. dice"))
-opt_defs["num_epochs"] = dict(flags = ('-ne', '--num-epochs',), info=dict(default=30, type=int, help="training epochs"))
+opt_defs["num_epochs"] = dict(flags = ('-ne', '--num-epochs',), info=dict(default=10, type=int, help="training epochs"))
 
 # Checkpoint options
 opt_defs["results_path"] = dict(flags = ('-rp', '--results-path'), info=dict(default="./results_ms/", type=str, help="path to results"))
