@@ -98,41 +98,59 @@ class conv_block(nn.Module):
         return x
 
 ##################################################################daptiveFeatureSelectionLayer
-import torch.nn as nn
+# import torch.nn as nn
+# class SqueezeAttentionBlock(nn.Module):
+#     def __init__(self, ch_in, ch_out, intermediate_channels=None):
+#         super(SqueezeAttentionBlock, self).__init__()
+#
+#         if intermediate_channels is None:
+#             intermediate_channels = ch_out // 2  # default to half of ch_out
+#
+#         self.weight_network = nn.Sequential(
+#             nn.Conv2d(ch_in, intermediate_channels, kernel_size=1),
+#             nn.BatchNorm2d(intermediate_channels),
+#             nn.ReLU(inplace=True),
+#
+#             nn.Conv2d(intermediate_channels, intermediate_channels, kernel_size=3, padding=1),
+#             nn.BatchNorm2d(intermediate_channels),
+#             nn.ReLU(inplace=True),
+#
+#             nn.Conv2d(intermediate_channels, ch_out, kernel_size=1),
+#             nn.BatchNorm2d(ch_out),
+#             nn.ReLU(inplace=True),
+#
+#             nn.Conv2d(ch_out, ch_out, kernel_size=3, padding=1),
+#             nn.BatchNorm2d(ch_out),
+#             nn.ReLU(inplace=True),
+#
+#             nn.Conv2d(ch_out, ch_out, kernel_size=1),
+#             nn.BatchNorm2d(ch_out),
+#             nn.Sigmoid()
+#         )
+#
+#     def forward(self, x):
+#         weights = self.weight_network(x)
+#         return x * weights
+########################################################################################ChannelAttentionBlock
 class SqueezeAttentionBlock(nn.Module):
-    def __init__(self, ch_in, ch_out, intermediate_channels=None):
+    def __init__(self, ch_in, ch_out, reduction=16):
         super(SqueezeAttentionBlock, self).__init__()
-
-        if intermediate_channels is None:
-            intermediate_channels = ch_out // 2  # default to half of ch_out
-
-        self.weight_network = nn.Sequential(
-            nn.Conv2d(ch_in, intermediate_channels, kernel_size=1),
-            nn.BatchNorm2d(intermediate_channels),
+        self.conv = conv_block(ch_in, ch_out)
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.max_pool = nn.AdaptiveMaxPool2d(1)
+        self.fc = nn.Sequential(
+            nn.Linear(ch_in, ch_in // reduction, bias=False),
             nn.ReLU(inplace=True),
-
-            nn.Conv2d(intermediate_channels, intermediate_channels, kernel_size=3, padding=1),
-            nn.BatchNorm2d(intermediate_channels),
-            nn.ReLU(inplace=True),
-
-            nn.Conv2d(intermediate_channels, ch_out, kernel_size=1),
-            nn.BatchNorm2d(ch_out),
-            nn.ReLU(inplace=True),
-
-            nn.Conv2d(ch_out, ch_out, kernel_size=3, padding=1),
-            nn.BatchNorm2d(ch_out),
-            nn.ReLU(inplace=True),
-
-            nn.Conv2d(ch_out, ch_out, kernel_size=1),
-            nn.BatchNorm2d(ch_out),
+            nn.Linear(ch_in // reduction, ch_in, bias=False),
             nn.Sigmoid()
         )
 
     def forward(self, x):
-        weights = self.weight_network(x)
-        return x * weights
-
-
+        x_res = self.conv(x)
+        avg_out = self.fc(self.avg_pool(x_res).view(x_res.size(0), -1)).view(x_res.size(0), x_res.size(1), 1, 1)
+        max_out = self.fc(self.max_pool(x_res).view(x_res.size(0), -1)).view(x_res.size(0), x_res.size(1), 1, 1)
+        out = avg_out + max_out
+        return x_res * out
 ##################################################################SqueezeAttentionBlock
 # class SqueezeAttentionBlock(nn.Module):
 #     def __init__(self, ch_in, ch_out):
