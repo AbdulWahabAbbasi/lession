@@ -131,26 +131,61 @@ class conv_block(nn.Module):
 #     def forward(self, x):
 #         weights = self.weight_network(x)
 #         return x * weights
-########################################################################################ChannelAttentionBlock
-class SqueezeAttentionBlock(nn.Module):
-    def __init__(self, ch_in, ch_out, reduction=16):
-        super(SqueezeAttentionBlock, self).__init__()
-        self.conv = conv_block(ch_in, ch_out)
+
+########################################################################################Squeeze-and-Excitation Network
+import torch.nn.functional as F
+class SEBlock(nn.Module):
+    def __init__(self, channel, reduction=16):
+        super(SEBlock, self).__init__()
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
-        self.max_pool = nn.AdaptiveMaxPool2d(1)
         self.fc = nn.Sequential(
-            nn.Linear(ch_in, ch_in // reduction, bias=False),
+            nn.Linear(channel, channel // reduction, bias=False),
             nn.ReLU(inplace=True),
-            nn.Linear(ch_in // reduction, ch_in, bias=False),
+            nn.Linear(channel // reduction, channel, bias=False),
             nn.Sigmoid()
         )
 
     def forward(self, x):
-        x_res = self.conv(x)
-        avg_out = self.fc(self.avg_pool(x_res).view(x_res.size(0), -1)).view(x_res.size(0), x_res.size(1), 1, 1)
-        max_out = self.fc(self.max_pool(x_res).view(x_res.size(0), -1)).view(x_res.size(0), x_res.size(1), 1, 1)
-        out = avg_out + max_out
-        return x_res * out
+        b, c, _, _ = x.size()
+        y = self.avg_pool(x).view(b, c)
+        y = self.fc(y).view(b, c, 1, 1)
+        return x * y.expand_as(x)
+
+
+class SqueezeAttentionBlock(nn.Module):
+    def __init__(self, ch_in, ch_out):
+        super(SqueezeAttentionBlock, self).__init__()
+        self.conv = nn.Conv2d(ch_in, ch_out, kernel_size=3, padding=1)
+        self.bn = nn.BatchNorm2d(ch_out)
+        self.relu = nn.ReLU(inplace=True)
+        self.se = SEBlock(ch_out)
+
+    def forward(self, x):
+        out = self.conv(x)
+        out = self.bn(out)
+        out = self.relu(out)
+        out = self.se(out)
+        return out
+######################################################3##################################ChannelAttentionBlock
+# class SqueezeAttentionBlock(nn.Module):
+#     def __init__(self, ch_in, ch_out, reduction=16):
+#         super(SqueezeAttentionBlock, self).__init__()
+#         self.conv = conv_block(ch_in, ch_out)
+#         self.avg_pool = nn.AdaptiveAvgPool2d(1)
+#         self.max_pool = nn.AdaptiveMaxPool2d(1)
+#         self.fc = nn.Sequential(
+#             nn.Linear(ch_in, ch_in // reduction, bias=False),
+#             nn.ReLU(inplace=True),
+#             nn.Linear(ch_in // reduction, ch_in, bias=False),
+#             nn.Sigmoid()
+#         )
+#
+#     def forward(self, x):
+#         x_res = self.conv(x)
+#         avg_out = self.fc(self.avg_pool(x_res).view(x_res.size(0), -1)).view(x_res.size(0), x_res.size(1), 1, 1)
+#         max_out = self.fc(self.max_pool(x_res).view(x_res.size(0), -1)).view(x_res.size(0), x_res.size(1), 1, 1)
+#         out = avg_out + max_out
+#         return x_res * out
 ##################################################################SqueezeAttentionBlock
 # class SqueezeAttentionBlock(nn.Module):
 #     def __init__(self, ch_in, ch_out):
