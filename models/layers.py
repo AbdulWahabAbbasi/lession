@@ -144,14 +144,11 @@ class SEBlock(nn.Module):
             nn.Linear(channel // reduction, channel, bias=False),
             nn.Sigmoid()
         )
-
     def forward(self, x):
         b, c, _, _ = x.size()
         y = self.avg_pool(x).view(b, c)
         y = self.fc(y).view(b, c, 1, 1)
         return x * y.expand_as(x)
-
-
 class SqueezeAttentionBlock(nn.Module):
     def __init__(self, ch_in, ch_out):
         super(SqueezeAttentionBlock, self).__init__()
@@ -166,7 +163,7 @@ class SqueezeAttentionBlock(nn.Module):
         out = self.relu(out)
         out = self.se(out)
         return out
-######################################################3##################################ChannelAttentionBlock
+# ######################################################3##################################ChannelAttentionBlock
 # class SqueezeAttentionBlock(nn.Module):
 #     def __init__(self, ch_in, ch_out, reduction=16):
 #         super(SqueezeAttentionBlock, self).__init__()
