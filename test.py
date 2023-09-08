@@ -1,8 +1,8 @@
 import torch
 import torchvision.transforms as transforms
 from models import tiramisu
-from datasets import MSDataset
-from datasets import joint_transforms
+from data import MSDataset
+from data import joint_transforms
 import utils.training as train_utils
 from pathlib import Path
 import os
