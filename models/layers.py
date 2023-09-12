@@ -152,7 +152,7 @@ import torch.nn.functional as F
 # class SqueezeAttentionBlock(nn.Module):
 #     def __init__(self, ch_in, ch_out):
 #         super(SqueezeAttentionBlock, self).__init__()
-#         self.conv = nn.Conv2d(ch_in, ch_out, kernel_size=3, padding=1)
+#         self.conv = n.Cnonv2d(ch_in, ch_out, kernel_size=3, padding=1)
 #         self.bn = nn.BatchNorm2d(ch_out)
 #         self.relu = nn.ReLU(inplace=True)
 #         self.se = SEBlock(ch_out)
