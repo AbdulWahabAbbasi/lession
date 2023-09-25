@@ -136,7 +136,7 @@ if __name__ == '__main__':
 
     #CROSS-VALIDATION
     sum_dice = 0
-    for f in range(2, folders + 1):#1
+    for f in range(3, folders + 1):#1
         if folders == 1:
             folder = ''
         else:
