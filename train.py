@@ -136,7 +136,7 @@ if __name__ == '__main__':
 
     #CROSS-VALIDATION
     sum_dice = 0
-    for f in range(3, folders + 1):#1
+    for f in range(4, folders + 1):#1
         if folders == 1:
             folder = ''
         else:
@@ -179,6 +179,11 @@ if __name__ == '__main__':
 
         #SHOW MODEL
         #print(model)
+        #print Total number of parameters
+        # for name, param in model.named_parameters():
+        #     print(f"Parameter Name: {name}, Size: {param.size()}")
+        total_params = sum(p.numel() for p in model.parameters())
+        print(f"Total Number of Model Parameters: {total_params}")
 
         #SET OPTIMIZER
         if optim == 'SGD':
