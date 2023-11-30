@@ -36,7 +36,7 @@ opt_defs["bidirectional"] = dict(flags = ('-bv', '--bidirectional'), info=dict(d
 opt_defs["input_dim"] = dict(flags = ('-dim', '--input-dim'), info=dict(default=160, type=int, help="input dim")) #224
 
 # Training options
-opt_defs["batch_size"] = dict(flags = ('-b', '--batch-size'), info=dict(default=4, type=int, help="batch size"))
+opt_defs["batch_size"] = dict(flags = ('-b', '--batch-size'), info=dict(default=1, type=int, help="batch size"))
 opt_defs["optim"] = dict(flags = ('-o', '--optim'), info=dict(default="RMSprop", help="optimizer"))#RMSprop
 opt_defs["learning_rate"] = dict(flags = ('-lr', '--learning-rate'), info=dict(default=1e-4, type=float, help="learning rate"))
 opt_defs["learning_rate_decay_by"] = dict(flags = ('-lrdb', '--learning-rate-decay-by'), info=dict(default=0.995, type=float, help="learning rate decay factor"))
