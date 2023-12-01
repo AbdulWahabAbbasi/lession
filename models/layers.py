@@ -155,7 +155,7 @@ class SqueezeAttentionBlock(nn.Module):
         self.conv = nn.Conv2d(ch_in, ch_out, kernel_size=3, padding=1)
         self.bn = nn.BatchNorm2d(ch_out)
         self.relu = nn.ReLU(inplace=True)
-        self.se = SEBlock(ch_out)
+        # self.se = SEBlock(ch_out)
 
     def forward(self, x):
         out = self.conv(x)
