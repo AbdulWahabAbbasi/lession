@@ -136,12 +136,12 @@ class conv_block(nn.Module):
 import torch.nn.functional as F
 class SEBlock(nn.Module):
     def __init__(self, channel, reduction=16):
-        # super(SEBlock, self).__init__()
+        super(SEBlock, self).__init__()
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
         self.fc = nn.Sequential(
             nn.Linear(channel, channel // reduction, bias=False),
             nn.ReLU(inplace=True),
-             nn.Linear(channel // reduction, channel, bias=False),
+            nn.Linear(channel // reduction, channel, bias=False),
             nn.Sigmoid()
         )
     def forward(self, x):
